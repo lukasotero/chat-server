@@ -1,16 +1,13 @@
 const IRCFramework = require('irc-framework');
 const readline = require('readline');
 
-
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
   
-
   let currentChannel = null;
   
-
   function showMenu() {
     console.log('=== Menú ===');
     console.log('1. Enviar mensaje (/msg)');
@@ -18,7 +15,6 @@ const rl = readline.createInterface({
     console.log('3. Unirse a una sala de chat (/join)');
     console.log('4. Crear una sala de chat (/create)');
     console.log('0. Salir');
-  
 
     if (currentChannel) {
       console.log(`--- Sala de chat actual: ${currentChannel}`);
@@ -116,7 +112,7 @@ const rl = readline.createInterface({
   server.connect({
     host: 'irc.libera.chat',
     port: 6667,
-    nick: 'DePalma2'
+    nick: 'LukasOtero'
   });
 
 
@@ -155,6 +151,5 @@ server.on('join', (event) => {
       }
     });
   }
-  
 
   showMenu();
