@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/lukasotero/chat-server#readme",
   "dependencies": {
-    "irc": "^0.5.2",
-    "irc-framework": "^4.13.1"
+    "chalk": "^2.4.2",
+    "irc": "^0.5.2"
   }
 }

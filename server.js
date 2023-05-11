@@ -1,14 +1,7 @@
 const readline = require('readline');
 const irc = require('irc');
+const chalk = require('chalk');
 
-const clientOptions = {
-  userName: '',
-  password: '',
-  port: 6697,
-  secure: true,
-  autoConnect: false,
-  host: ''
-};
 
 const hosts = [
   'irc.libera.chat',
@@ -20,178 +13,58 @@ const hosts = [
   'irc.ipv6.libera.chat'
 ];
 
-let client;
-
-function connectToIRC() {
-  client = new irc.Client(clientOptions.host, clientOptions.userName, clientOptions);
-
-  client.addListener('registered', function () {
-    console.log('Conexión establecida con éxito.');
-    showMainMenu();
-  });
-
-  client.addListener('error', function (message) {
-    console.log('Error de conexión:', message);
-    connectToNextHost();
-  });
-
-  client.connect();
-}
-
+const port = 6697;
+const channels = ['#libera', '#linux']; // Agrega los canales a los que deseas unirte
 
 const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-  
+  input: process.stdin,
+  output: process.stdout
+});
 
-  let currentChannel = null;
-  
+rl.question('Usuario: ', (username) => {
+  rl.question('Contraseña: ', (password) => {
+    rl.close();
 
-  function showMenu() {
-    console.log('=== Menú ===');
-    console.log('1. Enviar mensaje (/msg)');
-    console.log('2. Registrarse (/register)');
-    console.log('3. Unirse a una sala de chat (/join)');
-    console.log('4. Crear una sala de chat (/create)');
-    console.log('0. Salir');
-  
+    // Función para generar un color aleatorio
+    const getRandomColor = () => {
+      const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
+      const randomIndex = Math.floor(Math.random() * colors.length);
+      return colors[randomIndex];
+    };
 
-    if (currentChannel) {
-      console.log(`--- Sala de chat actual: ${currentChannel}`);
-    }
-  }
-  
-  // Escuchar los comandos ingresados por el usuario
-  rl.on('line', (input) => {
-    const command = input.trim();
-  
-    switch (command) {
-      case '1':
-        console.log('Ingrese el mensaje en el formato "/msg destino mensaje"');
-        sendMessage();
-        break;
-      case '2':
-        console.log('Ingrese la contraseña y el correo electrónico en el formato "/register contraseña correo"');
-        registerUser();
-        break;
-      case '3':
-        console.log('Ingrese el nombre de la sala de chat en el formato "/join #sala"');
-        joinChannel();
-        break;
-      case '4':
-        console.log('Ingrese el nombre de la sala de chat en el formato "/create #sala"');
-        createChannel();
-        break;
-      case '0':
-        rl.close();
-        process.exit(0);
-        break;
-      default:
-        console.log('Comando inválido');
-        break;
-    }
-  });
-  
-  // Enviar un mensaje al servidor IRC
-  function sendMessage() {
-    rl.question('Comando: ', (command) => {
-      server.raw(command);
-      showMenu();
-    });
-  }
-  
-  // Registrar un usuario en el servidor IRC
-  function registerUser() {
-    rl.question('Comando: ', (command) => {
-      server.raw(command);
-      showMenu();
-    });
-  }
-  
-  // Unirse a una sala de chat en el servidor IRC
-  function joinChannel() {
-    rl.question('Comando: ', (command) => {
-      server.raw(command);
-      currentChannel = getChannelName(command);
-      showMenu();
-    });
-  }
-  
-  // Crear una sala de chat en el servidor IRC
-  function createChannel() {
-    rl.question('Comando: ', (command) => {
-      server.raw(command);
-      currentChannel = getChannelName(command);
-      showMenu();
-    });
-  }
-  
-  // Obtener el nombre de la sala de chat a partir del comando
-  function getChannelName(command) {
-    const channelRegex = /^\/(join|create) (#\w+)/;
-    const match = command.match(channelRegex);
-    if (match) {
-      return match[2];
-    }
-    return null;
-  }
-  
-
-  const server = new IRCFramework.Client();
-  
-  server.on('registered', () => {
-    console.log('Servidor IRC en ejecución');
-    showMenu();
-  });
-  
-  server.on('message', (event) => {
-    const { target, message } = event;
-    console.log(`Mensaje recibido en ${target}: ${message}`);
-  });
-  
-  server.connect({
-    host: 'irc.libera.chat',
-    port: 6667,
-    nick: 'DePalma2'
-  });
-
-
-server.on('join', (event) => {
-    const { channel, nick } = event;
-    if (nick === server.user.nick && channel === currentChannel) {
-      showChatRoom();
-    }
-  });
-  
-  server.on('join.create', (event) => {
-    const { channel, nick } = event;
-    if (nick === server.user.nick && channel === currentChannel) {
-      console.log(`Has creado la sala de chat ${channel}`);
-      showChatRoom();
-    }
-  });
-  
-  function showChatRoom() {
-    console.log(`=== Sala de chat: ${currentChannel} ===`);
-    console.log('Ingrese "/back" para regresar al menú principal');
-    console.log('Ingrese el mensaje en el formato "/msg destino mensaje"');
-  
-    rl.on('line', (input) => {
-      const command = input.trim();
-  
-      if (command === '/back') {
-        currentChannel = null; 
-        rl.removeAllListeners('line'); 
-        showMenu();
-      } else if (command.startsWith('/msg')) {
-        const [, target, message] = command.split(' ');
-        server.raw(`PRIVMSG ${target} :${message}`);
-      } else {
-        console.log('Comando inválido');
+    // Función para intentar conectar a los hosts disponibles
+    const connectToHost = (index) => {
+      if (index >= hosts.length) {
+        console.log('No se pudo conectar a ningún host.');
+        process.exit(1);
       }
-    });
-  }
-  
 
-  showMenu();
+      const host = hosts[index];
+      const client = new irc.Client(host, username, {
+        port,
+        userName: username,
+        password,
+        secure: true,
+        channels
+      });
+
+      client.addListener('registered', () => {
+        console.log(`Conectado a ${host}`);
+      });
+
+      client.addListener('message', (from, to, message) => {
+        const userColor = chalk[getRandomColor()];
+
+        console.log(`[${to}] ${userColor('<' + from + '>')} ${message}`);
+      });
+
+      client.addListener('error', (message) => {
+        console.log(`Error al conectar a ${host}: ${message}`);
+        client.disconnect();
+        connectToHost(index + 1);
+      });
+    };
+
+    connectToHost(0);
+  });
+});
