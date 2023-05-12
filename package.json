@@ -19,6 +19,9 @@
   "homepage": "https://github.com/lukasotero/chat-server#readme",
   "dependencies": {
     "chalk": "^2.4.2",
-    "irc": "^0.5.2"
+    "cli-progress": "^3.12.0",
+    "figlet": "^1.6.0",
+    "irc": "^0.5.2",
+    "prompts": "^2.4.2"
   }
 }
