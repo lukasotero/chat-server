@@ -1,14 +1,4 @@
-const {
-  banUser,
-  closeBuffer,
-  deopUser,
-  devoiceUser,
-  inviteUser,
-  joinChannel,
-  setAwayMessage,
-  showBanList,
-  switchBuffer
-} = require('./functions.js');
+const { showWelcomeMessage, showUserStatus, sendMessage, handleInput, extractChannelsFromMotd, showAvailableChannels, joinDefaultChannel } = require('./helpers');
 
 const {
   showHelpMenu
@@ -21,17 +11,14 @@ const prompts = require('prompts');
 const gradient = require('gradient-string');
 const readline = require('readline');
 
-const hosts = [
-  '181.229.125.113', // Si hace falta, poner mas hosts
-];
-
+const host = '181.229.125.113'; 
 const port = 8657;
 const channels = ['#general', '#Help'];
 let currentChannel = channels[0];
 let client;
-let connectedHost;
 let isAsciiDisplayed = false;
 let spinner;
+let rl;
 
 console.log(gradient.rainbow(figlet.textSync('¡Chat IRC!', {
   horizontalLayout: 'full'
@@ -54,9 +41,7 @@ console.log(gradient.rainbow(figlet.textSync('¡Chat IRC!', {
     message: 'Contraseña:'
   });
 
-  console.log(gradient.rainbow(figlet.textSync(`¡Bienvenido ${username}!`, {
-    horizontalLayout: 'full'
-  })));
+  showWelcomeMessage(username);
   runChatClient(username, password);
 })();
 
@@ -68,27 +53,25 @@ function runChatClient(username, password) {
     channels
   };
 
-
   function startSpinner() {
     const spinnerFrames = ['-', '\\', '|', '/'];
     let frameIndex = 0;
-    connectedHost = hosts[0]; // Inicializar con el primer host
-
+  
     spinner = setInterval(() => {
-      const connectingText = chalk.yellow('Conectando a ') + chalk.cyan(connectedHost);
+      const connectingText = chalk.yellow('Conectando al host...');
       process.stdout.write(`${spinnerFrames[frameIndex % spinnerFrames.length]} ${connectingText}\r`);
       frameIndex++;
     }, 100);
   }
 
-  function connectToHost(index) {
-    if (index >= hosts.length) {
-      console.log(chalk.red('No se pudo conectar a ningún host.'));
-      process.exit(1);
-    }
-
-    const host = hosts[index];
+  function connectToHost() {
     client = new irc.Client(host, username, clientOptions);
+
+    client.addListener('motd', (motd) => {
+      availableChannels = extractChannelsFromMotd(motd);
+      showAvailableChannels(availableChannels);
+      joinDefaultChannel(client, availableChannels[0] || '#general');
+    });
 
     client.addListener('registered', () => {
       connectedHost = host;
@@ -96,6 +79,23 @@ function runChatClient(username, password) {
       const connectedMessage = chalk.green(`Conectado a ${connectedHost}`);
       console.log(connectedMessage);
       showUserStatus(client);
+
+      const generalChannel = '#general';
+      if (!channels.includes(generalChannel)) {
+        client.join(generalChannel, () => {
+          currentChannel = generalChannel;
+          console.log(chalk.green(`Se ha creado la sala "${generalChannel}"`));
+          rl.setPrompt(`${currentChannel}> `);
+          rl.prompt();
+        });
+      } else {
+        currentChannel = generalChannel;
+        rl.setPrompt(`${currentChannel}> `);
+        rl.prompt();
+      }
+      
+
+
       rl.question('', (message) => {
         sendMessage(client, currentChannel, message);
       });
@@ -133,6 +133,11 @@ function runChatClient(username, password) {
       handleInput(input);
     });
 
+    connectionTimeout = setTimeout(() => {
+      console.log(chalk.red('No se pudo conectar al host. La sesión se cerrará.'));
+      process.exit(1);
+    }, 120000); 
+
     startSpinner();
   }
 
@@ -158,10 +163,10 @@ function runChatClient(username, password) {
       }
     });
 
-    connectToHost(index + 1);
+    connectToHost();
   }
 
-  connectToHost(0);
+  connectToHost();
 }
 
 function getRandomColor() {
@@ -178,102 +183,3 @@ function getCurrentTimestamp() {
   return chalk.dim(`${hours}:${minutes}:${seconds}`);
 }
 
-function showUserStatus(client) {
-  client.addListener('join', (channel, nick) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} se ha unido a ${channel}`));
-  });
-
-  client.addListener('part', (channel, nick, reason) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} ha salido de ${channel}. Motivo: ${reason}`));
-  });
-
-  client.addListener('quit', (nick, reason) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} se ha desconectado. Motivo: ${reason}`));
-  });
-}
-
-function sendMessage(client, channel, message) {
-  const trimmedInput = message.trim();
-  if (trimmedInput.startsWith('/join ')) {
-    const newChannel = trimmedInput.slice(6);
-    if (channels.includes(newChannel)) {
-      client.join(newChannel);
-      currentChannel = newChannel; // Actualizar el canal actual
-      console.log(chalk.green(`Te has unido al canal ${newChannel}.`));
-    } else {
-      console.log(chalk.yellow(`El canal "${newChannel}" no es válido. Utiliza el formato "/join <nombre-del-canal>".`));
-    }
-  } else {
-    client.say(channel, trimmedInput); // Enviar mensaje al canal actual
-  }
-}
-
-function handleInput(input) {
-  const [command, ...args] = input.trim().split(' ');
-
-  switch (command) {
-    case '/help':
-      showHelpMenu();
-      break;
-    case '/join':
-      const channel = args[0];
-      if (channel) {
-        joinChannel(client, channel);
-      } else {
-        console.log('Por favor, especifica un canal válido.');
-      }
-      break;
-    case '/quit':
-      console.log('Saliendo del chat...');
-      process.exit(0);
-      break;
-    case '/away':
-      const awayMessage = args.join(' ');
-      setAwayMessage(client, awayMessage);
-      break;
-    case '/ban':
-      const banNickname = args[0];
-      if (banNickname) {
-        banUser(client, currentChannel, banNickname);
-      } else {
-        showBanList(client, currentChannel);
-      }
-      break;
-    case '/buffer':
-      const bufferName = args[0];
-      switchBuffer(bufferName);
-      break;
-    case '/close':
-      closeBuffer();
-      break;
-    case '/deop':
-      const deopNickname = args[0];
-      deopUser(client, currentChannel, deopNickname);
-      break;
-    case '/devoice':
-      const devoiceNickname = args[0];
-      devoiceUser(client, currentChannel, devoiceNickname);
-      break;
-    case '/disconnect':
-      console.log('Desconectándose del servidor...');
-      client.disconnect();
-      break;
-    case '/invite':
-      const inviteNickname = args[0];
-      if (inviteNickname) {
-        inviteUser(client, currentChannel, inviteNickname);
-      } else {
-        console.log('Por favor, especifica un apodo válido.');
-      }
-      break;
-    default:
-      if (currentChannel) {
-        sendMessage(client, currentChannel, input);
-      } else {
-        console.log('No estás en ningún canal. Usa /join para unirte a un canal existente o crear uno nuevo.');
-      }
-      break;
-  }
-
-  rl.prompt();
-}
