@@ -1,4 +1,5 @@
-const { showWelcomeMessage, showUserStatus, sendMessage, handleInput, extractChannelsFromMotd, showAvailableChannels, joinDefaultChannel } = require('./helpers');
+const { showWelcomeMessage, showUserStatus, sendMessage, handleInput, extractChannelsFromMotd, showAvailableChannels, joinDefaultChannel, getRandomColor,
+  getCurrentTimestamp } = require('./helpers');
 
 const {
   showHelpMenu
@@ -169,17 +170,5 @@ function runChatClient(username, password) {
   connectToHost();
 }
 
-function getRandomColor() {
-  const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
-  const randomIndex = Math.floor(Math.random() * colors.length);
-  return colors[randomIndex];
-}
 
-function getCurrentTimestamp() {
-  const date = new Date();
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const seconds = date.getSeconds().toString().padStart(2, '0');
-  return chalk.dim(`${hours}:${minutes}:${seconds}`);
-}
 
