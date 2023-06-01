@@ -1,13 +1,9 @@
 const {
-  banUser,
   closeBuffer,
   deopUser,
   devoiceUser,
   inviteUser,
-  joinChannel,
   setAwayMessage,
-  showBanList,
-  switchBuffer
 } = require('./functions.js');
 
 const {
@@ -26,7 +22,7 @@ const hosts = [
 ];
 
 const port = 8657;
-const channels = ['#general', '#Help'];
+let channels = ['#general'];
 let currentChannel = channels[0];
 let client;
 let connectedHost;
@@ -75,8 +71,8 @@ function runChatClient(username, password) {
     connectedHost = hosts[0]; // Inicializar con el primer host
 
     spinner = setInterval(() => {
-      const connectingText = chalk.yellow('Conectando a ') + chalk.cyan(connectedHost);
-      process.stdout.write(`${spinnerFrames[frameIndex % spinnerFrames.length]} ${connectingText}\r`);
+      const connectingText = chalk.yellow('Conectando a ') + chalk.cyan(connectedHost );
+      process.stdout.write(`${spinnerFrames[frameIndex % spinnerFrames.length]} ${ connectingText }\r`);
       frameIndex++;
     }, 100);
   }
@@ -114,13 +110,19 @@ function runChatClient(username, password) {
       handleConnectionError(message, host, client);
     });
 
-    client.addListener('selfMessage', (to, message) => {
-      if (!isAsciiDisplayed) {
-        isAsciiDisplayed = true;
-      }
-      const timestamp = getCurrentTimestamp();
+    client.addListener('message#', (username, to, text, message) => {
       console.log(`[${timestamp}] [${to}] ${chalk.green('<' + username + '>')} ${message}`);
-    });
+      console.log(text)
+    })
+
+    // client.addListener('selfMessage', (to, message) => {
+    //   if (!isAsciiDisplayed) {
+    //     isAsciiDisplayed = true;
+    //   }
+    //   const timestamp = getCurrentTimestamp();
+    //   console.log(`[${timestamp}] [${to}] ${chalk.green('<' + username + '>')} ${message}`);
+    // });
+    
 
     rl = readline.createInterface({
       input: process.stdin,
@@ -197,16 +199,38 @@ function sendMessage(client, channel, message) {
   if (trimmedInput.startsWith('/join ')) {
     const newChannel = trimmedInput.slice(6);
     if (channels.includes(newChannel)) {
+      client.part(currentChannel); // Desconectar del canal actual
       client.join(newChannel);
       currentChannel = newChannel; // Actualizar el canal actual
       console.log(chalk.green(`Te has unido al canal ${newChannel}.`));
     } else {
-      console.log(chalk.yellow(`El canal "${newChannel}" no es válido. Utiliza el formato "/join <nombre-del-canal>".`));
+      channels.push(newChannel); // Agregar el nuevo canal a la lista de canales
+      client.join(newChannel);
+      currentChannel = newChannel; // Actualizar el canal actual
+      console.log(chalk.green(`Has creado y te has unido al nuevo canal ${newChannel}.`));
     }
-  } else {
+  } else if (currentChannel) { // Verificar si estás conectado a un canal
     client.say(channel, trimmedInput); // Enviar mensaje al canal actual
+  } else {
+    console.log('No estás en ningún canal. Usa /join para unirte a un canal existente o crear uno nuevo.');
   }
 }
+
+
+function joinChannel(channel, client) {
+  if (channels.includes(channel)) {
+    client.part(currentChannel); // Desconectar del canal actual
+    client.join(channel);
+    currentChannel = channel; // Actualizar el canal actual
+    console.log(chalk.green(`Te has unido al canal ${channel}.`));
+  } else {
+    channels.push(channel); // Agregar el nuevo canal a la lista de canales
+    client.join(channel);
+    currentChannel = channel; // Actualizar el canal actual
+    console.log(chalk.green(`Te has unido al nuevo canal ${channel}.`));
+  }
+}
+
 
 function handleInput(input) {
   const [command, ...args] = input.trim().split(' ');
@@ -217,11 +241,7 @@ function handleInput(input) {
       break;
     case '/join':
       const channel = args[0];
-      if (channel) {
-        joinChannel(client, channel);
-      } else {
-        console.log('Por favor, especifica un canal válido.');
-      }
+      joinChannel(channel, client);
       break;
     case '/quit':
       console.log('Saliendo del chat...');
@@ -231,18 +251,11 @@ function handleInput(input) {
       const awayMessage = args.join(' ');
       setAwayMessage(client, awayMessage);
       break;
-    case '/ban':
-      const banNickname = args[0];
-      if (banNickname) {
-        banUser(client, currentChannel, banNickname);
-      } else {
-        showBanList(client, currentChannel);
-      }
-      break;
-    case '/buffer':
-      const bufferName = args[0];
-      switchBuffer(bufferName);
-      break;
+      case '/part':
+        client.part(currentChannel);
+        currentChannel = ''; 
+        console.log(chalk.yellow('Te has desconectado del canal.'));
+        break;
     case '/close':
       closeBuffer();
       break;

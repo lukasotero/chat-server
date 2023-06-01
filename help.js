@@ -4,18 +4,6 @@ async function showHelpMenu() {
             description: 'Establecer mensaje de ausencia'
         },
         {
-            title: '/ban [nick]',
-            description: 'Bloquear a un usuario en el canal o mostrar la lista actual de bloqueos'
-        },
-        {
-            title: '/buffer <name>',
-            description: 'Cambiar a un buffer'
-        },
-        {
-            title: '/close',
-            description: 'Cerrar el buffer actual'
-        },
-        {
             title: '/deop <nick>',
             description: 'Quitar estado de operador a un usuario en este canal'
         },
@@ -36,28 +24,12 @@ async function showHelpMenu() {
             description: 'Invitar a un usuario al canal'
         },
         {
-            title: '/j <name> [password]',
-            description: 'Unirse a un canal (forma abreviada)'
-        },
-        {
             title: '/join <name> [password]',
             description: 'Unirse a un canal'
         },
         {
             title: '/kick <nick> [comment]',
             description: 'Expulsar a un usuario del canal'
-        },
-        {
-            title: '/kickban <target>',
-            description: 'Bloquear a un usuario y expulsarlo del canal'
-        },
-        {
-            title: '/lusers [<mask> [<target>]]',
-            description: 'Solicitar estadísticas de usuarios sobre la red'
-        },
-        {
-            title: '/me <action>',
-            description: 'Enviar un mensaje de acción al buffer actual'
         },
         {
             title: '/mode [target] [modes] [mode args...]',
@@ -88,44 +60,12 @@ async function showHelpMenu() {
             description: 'Salir de un canal'
         },
         {
-            title: '/query <nick> [message]',
-            description: 'Abrir un buffer para enviar mensajes a un apodo'
-        },
-        {
-            title: '/quiet [nick]',
-            description: 'Silenciar a un usuario en el canal o mostrar la lista actual de silenciados'
-        },
-        {
             title: '/quit',
             description: 'Salir del chat'
         },
         {
-            title: '/quote <command>',
-            description: 'Enviar un comando IRC en crudo al servidor'
-        },
-        {
             title: '/reconnect',
             description: 'Reconectarse al servidor'
-        },
-        {
-            title: '/setname <realname>',
-            description: 'Cambiar nombre real actual'
-        },
-        {
-            title: '/stats <query> [server]',
-            description: 'Solicitar estadísticas del servidor'
-        },
-        {
-            title: '/topic <topic>',
-            description: 'Cambiar el tema del canal actual'
-        },
-        {
-            title: '/unban <nick>',
-            description: 'Quitar a un usuario de la lista de bloqueos'
-        },
-        {
-            title: '/unquiet <nick>',
-            description: 'Quitar a un usuario de la lista de silenciados'
         },
         {
             title: '/unvoice <nick>',
