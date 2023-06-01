@@ -11,10 +11,9 @@ const hosts = [
 
 const port = 8657;
 
-// Canales defaults
+// Canales defaults para unirte
 let channels = [
-  '#general',
-  '#help'
+  '#general'
 ];
 
 let currentChannel = channels[0];
@@ -103,10 +102,10 @@ function runChatClient(username, password) {
       handleConnectionError(message, host, client);
     });
 
-    client.addListener('message#', (username, to, text, message) => {
-      console.log(`[${timestamp}] [${to}] ${chalk.green('<' + username + '>')} ${message}`);
-      console.log(text)
-    })
+    // client.addListener('message#', (username, to, text, message) => {
+    //   console.log(`[${timestamp}] [${to}] ${chalk.green('<' + username + '>')} ${message}`);
+    //   console.log(text)
+    // })
 
     // Escuchador para ver tu propio mensaje
     // client.addListener('selfMessage', (to, message) => {
@@ -172,6 +171,11 @@ function getCurrentTimestamp() {
   return chalk.dim(`${hours}:${minutes}:${seconds}`);
 }
 
+// Función para obtener el nick del usuario
+function getNick(nick){
+  return nick;
+}
+
 function showUserStatus(client) {
   client.addListener('join', (channel, nick) => {
     console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} se unió a ${channel}`));
@@ -196,7 +200,7 @@ function sendMessage(client, channel, message) {
       client.part(currentChannel); // Desconectar del canal actual
       client.join(newChannel);
       currentChannel = newChannel; // Actualizar el canal actual
-      console.log(chalk.green(`Te has unido al canal ${newChannel}.`));
+      console.log(chalk.green(`Te uniste al canal ${newChannel}.`));
     } else {
       channels.push(newChannel); // Agregar el nuevo canal a la lista de canales
       client.join(newChannel);
@@ -204,6 +208,7 @@ function sendMessage(client, channel, message) {
       console.log(chalk.green(`Has creado y te has unido al nuevo canal ${newChannel}.`));
     }
   } else if (currentChannel) { // Verificar si estás conectado a un canal
+    //console.log(`[${getCurrentTimestamp()}] ${currentChannel}> `chalk.green(`<${getNick()}>`)` ${trimmedInput}`);
     client.say(channel, trimmedInput); // Enviar mensaje al canal actual
   } else {
     console.log('No estas en ningún canal. Usa /join para unirte a un canal existente o crear uno nuevo.');
