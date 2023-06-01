@@ -78,6 +78,7 @@ function runChatClient(username, password) {
     }
 
     const host = hosts[index];
+    const timestamp = getCurrentTimestamp();
     client = new irc.Client(host, username, clientOptions);
 
     client.addListener('registered', () => {
@@ -95,8 +96,6 @@ function runChatClient(username, password) {
 
     client.addListener('message', (from, to, message) => {
       const userColor = chalk[getRandomColor()];
-      const timestamp = getCurrentTimestamp();
-
       console.log(`[${timestamp}] [${to}] ${userColor('<' + from + '>')} ${message}`);
     });
 
@@ -114,7 +113,6 @@ function runChatClient(username, password) {
     //   if (!isAsciiDisplayed) {
     //     isAsciiDisplayed = true;
     //   }
-    //   const timestamp = getCurrentTimestamp();
     //   console.log(`[${timestamp}] [${to}] ${chalk.green('<' + username + '>')} ${message}`);
     // });
 
