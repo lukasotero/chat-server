@@ -86,11 +86,11 @@ function runChatClient(username, password) {
       const connectedMessage = chalk.green(`Conectado a ${connectedHost}`);
       console.log(connectedMessage);
       showUserStatus(client);
-      rl.question('', (message) => {
-        sendMessage(client, currentChannel, message);
-      });
-      rl.setPrompt(`${currentChannel}> `);
-      rl.prompt();
+      // rl.question('', (message) => {
+      //   sendMessage(client, currentChannel, message);
+      // });
+      rl.setPrompt(chalk.green(`<${client.nick}> `));
+      //rl.prompt();
     });
 
     client.addListener('message', (from, to, message) => {
@@ -142,7 +142,6 @@ function runChatClient(username, password) {
           const reason = 'Tu cliente IRC parece estar defectuoso y está inundando muchos canales.';
           console.log(chalk.red('¡Estás prohibido en este servidor!'));
           console.log(chalk.red(`Motivo: ${reason}`));
-          console.log(chalk.red('Si esto es un error, por favor, contacta a bans@libera.chat.'));
           process.exit(1);
         } else {
           console.log(chalk.red(errorMessage));
@@ -169,11 +168,6 @@ function getCurrentTimestamp() {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   const seconds = date.getSeconds().toString().padStart(2, '0');
   return chalk.dim(`${hours}:${minutes}:${seconds}`);
-}
-
-// Función para obtener el nick del usuario
-function getNick(nick){
-  return nick;
 }
 
 function showUserStatus(client) {
@@ -208,7 +202,7 @@ function sendMessage(client, channel, message) {
       console.log(chalk.green(`Has creado y te has unido al nuevo canal ${newChannel}.`));
     }
   } else if (currentChannel) { // Verificar si estás conectado a un canal
-    //console.log(`[${getCurrentTimestamp()}] ${currentChannel}> `chalk.green(`<${getNick()}>`)` ${trimmedInput}`);
+    console.log(`[${getCurrentTimestamp()}] ${chalk.yellow(`(${currentChannel})`)} ${chalk.green(`<${client.nick}>`)} ${trimmedInput}`);
     client.say(channel, trimmedInput); // Enviar mensaje al canal actual
   } else {
     console.log('No estas en ningún canal. Usa /join para unirte a un canal existente o crear uno nuevo.');
@@ -265,8 +259,8 @@ function handleInput(input) {
         console.log('No estás en ningún canal. Usa /join para unirte a un canal existente o crear uno nuevo.');
       }
       break;
-  }
-  rl.prompt();
+    }
+    rl.prompt();
 }
 
 /* ===== FUNCIONES ===== */
