@@ -158,11 +158,11 @@ function runChatClient(username, password) {
 }
 
 // Función para obtener los colores aleatorios
-// function getRandomColor() {
-//   const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
-//   const randomIndex = Math.floor(Math.random() * colors.length);
-//   return colors[randomIndex];
-// }
+function getRandomColor() {
+  const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
+  const randomIndex = Math.floor(Math.random() * colors.length);
+  return colors[randomIndex];
+}
 
 function getNextUserColor() {
   const color = userColors[userColorIndex];
