@@ -22,6 +22,9 @@ let connectedHost;
 // let isAsciiDisplayed = false;
 let spinner;
 
+const userColors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
+let userColorIndex = 0;
+
 console.log(gradient.rainbow(figlet.textSync('¡Chat IRC!', {
   horizontalLayout: 'full'
 })));
@@ -84,7 +87,7 @@ function runChatClient(username, password) {
       connectedHost = host;
       clearInterval(spinner);
       const connectedMessage = chalk.green(`Conectado a ${connectedHost}`);
-      console.log(connectedMessage);
+      //console.log(connectedMessage);
       showUserStatus(client);
       // rl.question('', (message) => {
       //   sendMessage(client, currentChannel, message);
@@ -155,10 +158,16 @@ function runChatClient(username, password) {
 }
 
 // Función para obtener los colores aleatorios
-function getRandomColor() {
-  const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
-  const randomIndex = Math.floor(Math.random() * colors.length);
-  return colors[randomIndex];
+// function getRandomColor() {
+//   const colors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
+//   const randomIndex = Math.floor(Math.random() * colors.length);
+//   return colors[randomIndex];
+// }
+
+function getNextUserColor() {
+  const color = userColors[userColorIndex];
+  userColorIndex = (userColorIndex + 1) % userColors.length; 
+  return color;
 }
 
 // Función para obtener la hora actual
@@ -171,16 +180,25 @@ function getCurrentTimestamp() {
 }
 
 function showUserStatus(client) {
+  const userColors = {};
+
   client.addListener('join', (channel, nick) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} se unió a ${channel}`));
+    const color = getNextUserColor();
+    userColors[nick] = color;
+    const userColor = chalk[color];
+    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${userColor(nick)} se unió a ${channel}`));
   });
 
   client.addListener('part', (channel, nick, reason) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} salió de ${channel}. Motivo: ${reason}`));
+    const userColor = chalk[userColors[nick]];
+    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${userColor(nick)} salió de ${channel}. Motivo: ${reason}`));
+    delete userColors[nick]; 
   });
 
   client.addListener('quit', (nick, reason) => {
-    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${nick} se desconectó. Motivo: ${reason}`));
+    const userColor = chalk[userColors[nick]];
+    console.log(chalk.yellow(`[${getCurrentTimestamp()}] ${userColor(nick)} se desconectó. Motivo: ${reason}`));
+    delete userColors[nick]; 
   });
 }
 
@@ -217,7 +235,7 @@ function handleInput(input) {
       showHelpMenu();
       break;
     case '/join':
-      const channel = args[0];
+      const channel = args[0].startsWith('#') ? args[0] : `#${args[0]}`;
       joinChannel(channel, client);
       break;
     case '/away':
@@ -276,7 +294,7 @@ function joinChannel(channel, client) {
     channels.push(channel); // Agregar el nuevo canal a la lista de canales
     client.join(channel);
     currentChannel = channel; // Actualizar el canal actual
-    console.log(chalk.green(`Creaste y te uniste al canal ${channel}.`));
+    console.log(chalk.green(`Te uniste al canal ${channel}.`));
   }
 }
 
