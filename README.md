@@ -3,4 +3,7 @@
 Implementar un cliente/servidor con el protocolo IRC, en el cual un usuario puede chatear en tiempo real con otro (a través de una interfaz de línea de comandos). Luego, si se logra un funcionamiento óptimo, considerar la posibilidad de contener el proyecto mediante la herramienta Docker.
 
 ## Cosas para arreglar :hammer:
-[ ] Dockerizar el servidor.
+- [ ] Printeo de IP después de loguearte.
+- [ ] Cambio de colores en el nombre de usuario. Estaría bueno que cada usuario tenga un color y no se cambie con cada mensaje que mandas.
+- [ ] Aparece el mensaje "Creaste y te uniste al canal #'nombre_del_canal'" cuando ya estaba creado por otro usuario. El mensaje que tendria que aparecer es: "Te uniste al canal #'nombre_del_canal'".
+- [ ] Crashea cuando creas un canal con /join 'nombre_del_canal'. La forma correcta sería /join #'nombre_del_canal'.
